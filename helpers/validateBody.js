@@ -1,23 +1,13 @@
-import HttpError from "./HttpError.js";
-
-const validateBody = (schema) => {
-  const func = (req, _, next) => {
-    const { body } = req;
-    const fieldsQty = Object.keys(body).length;
-    const { error } = schema.validate(body);
-
-    if (!fieldsQty) {
-      throw HttpError(400, "Body must have at least one field");
+const ctrlWrapper = (ctrl) => {
+  const fn = async (req, res, next) => {
+    try {
+      await ctrl(req, res, next);
+    } catch (error) {
+      next(error);
     }
-
-    if (error) {
-      next(HttpError(400, error.message));
-    }
-
-    next();
   };
 
-  return func;
+  return fn;
 };
 
-export default validateBody;
+export default ctrlWrapper;
