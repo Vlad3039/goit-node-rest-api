@@ -1,32 +1,43 @@
-import dotenv from "dotenv";
-dotenv.config();
-import jwt from "jsonwebtoken";
+import jsonwebtoken from "jsonwebtoken";
 import HttpError from "../helpers/HttpError.js";
-import { User } from "../models/user.js";
 
-const { SECRET_KEY } = process.env;
+import { UsersModel } from "../shemas/usersShemas.js";
 
-const authenticate = async (req, res, next) => {
-  const { authorization = "" } = req.headers;
-  const [bearer, token] = authorization.split(" ");
+export const authenticate = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (typeof authHeader === "undefined") {
+    return next(HttpError(401, "Not authorized"));
+  }
 
+  const [bearer, token] = authHeader.split(" ", 2);
   if (bearer !== "Bearer") {
-    next(HttpError(401));
+    return next(HttpError(401, "Not authorized"));
   }
 
-  try {
-    const { id } = jwt.verify(token, SECRET_KEY);
-    const user = await User.findById(id);
-
-    if (!user || !user.token || user.token !== token) {
-      next(HttpError(401));
+  jsonwebtoken.verify(token, process.env.JWT_SECRET, async (err, decode) => {
+    if (err) {
+      return next(HttpError(401, "Not authorized"));
     }
+    try {
+      const user = await UsersModel.findById(decode.id);
 
-    req.user = user;
+      console.log(decode.id);
+
+      if (user === null) {
+        next(HttpError(401, "Not authorized"));
+      }
+      if (user.token !== token) {
+        next(HttpError(401, "Not authorized"));
+      }
+
+      req.user = {
+        id: decode.id,
+        email: user.email,
+        subscription: user.subscription,
+      };
+    } catch (err) {
+      next(err);
+    }
     next();
-  } catch {
-    next(HttpError(401));
-  }
+  });
 };
-
-export default authenticate;
