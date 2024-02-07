@@ -1,21 +1,54 @@
 import express from "express";
 import {
-  register,
-  login,
-  getCurrent,
-  logout,
-} from "../controllers/authControllers.js";
+  getAllContacts,
+  getContactsById,
+  createContact,
+  updateContact,
+  deleteContact,
+  updateStatusContact,
+} from "../controllers/contactsControllers.js";
+
 import validateBody from "../helpers/validateBody.js";
-import { userJoiSchema } from "../shemas/usersShemas.js";
+import {
+  createContactSchema,
+  updateFavoriteSchema,
+} from "../shemas/contactsShemas.js";
+import { isValidId } from "../helpers/isValidId.js";
 import { authenticate } from "../middlewares/authenticate.js";
 
-const authRouter = express.Router();
+const contactsRouter = express.Router();
 const jsonParser = express.json();
 
-authRouter.post("/register", jsonParser, validateBody(userJoiSchema), register);
+contactsRouter.get("/", authenticate, getAllContacts);
 
-authRouter.post("/login", jsonParser, validateBody(userJoiSchema), login);
-authRouter.get("/current", authenticate, getCurrent);
-authRouter.get("/logout", authenticate, logout);
+contactsRouter.get("/:id", authenticate, isValidId, getContactsById);
 
-export default authRouter;
+contactsRouter.delete("/:id", authenticate, isValidId, deleteContact);
+
+contactsRouter.post(
+  "/",
+  authenticate,
+  jsonParser,
+  validateBody(createContactSchema),
+  createContact
+);
+
+contactsRouter.patch(
+  "/:id/favorite",
+  authenticate,
+  jsonParser,
+  isValidId,
+  validateBody(updateFavoriteSchema),
+  updateStatusContact
+);
+
+contactsRouter.put(
+  "/:id",
+  authenticate,
+  jsonParser,
+  isValidId,
+  validateBody(createContactSchema),
+  updateContact
+);
+
+export default contactsRouter;

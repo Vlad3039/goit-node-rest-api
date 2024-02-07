@@ -1,14 +1,15 @@
-import mongoose from "mongoose";
-import { config } from "dotenv";
+const messageList = {
+  400: "Bad Request",
+  401: "Unauthorized",
+  403: "Forbidden",
+  404: "Not Found",
+  409: "Conflict",
+};
 
-config();
+const HttpError = (status, message = messageList[status]) => {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+};
 
-const DB_URI = process.env.DB_URI;
-
-mongoose
-  .connect(DB_URI)
-  .then(() => console.log("Database connect saccesfully"))
-  .catch((error) => {
-    console.error("Database connection error:", error);
-    process.exit(1);
-  });
+export default HttpError;

@@ -1,8 +1,16 @@
+import { rename } from "fs/promises";
+import path from "path";
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
-
+import gravatar from "gravatar";
 import { UsersModel } from "../shemas/usersShemas.js";
 import HttpError from "../helpers/HttpError.js";
+
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export const register = async (req, res, next) => {
   const { email, password, subscription } = req.body;
@@ -13,10 +21,12 @@ export const register = async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const avatarURL = gravatar.url(email);
     const newUser = await UsersModel.create({
       email,
       password: passwordHash,
       subscription,
+      avatarURL,
     });
 
     const userResponse = {
@@ -70,6 +80,25 @@ export const logout = async (req, res, next) => {
   try {
     await UsersModel.findByIdAndUpdate(req.user.id, { token: null });
     res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const uploadAvatar = async (req, res, next) => {
+  try {
+    const { id } = req.user;
+    await rename(
+      req.file.path,
+      path.join(__dirname, "..", "public/avatars", req.file.filename)
+    );
+
+    const user = await UsersModel.findByIdAndUpdate(
+      id,
+      { avatarURL: req.file.filename },
+      { new: true }
+    );
+    res.json({ avatarURL: user.avatarURL });
   } catch (error) {
     next(error);
   }

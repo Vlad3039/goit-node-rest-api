@@ -12,7 +12,7 @@ export const getContactsById = async (req, res, next) => {
     const { id } = req.params;
     const contact = await contactsModel.findById(id);
     if (contact === null) {
-      throw HttpError(404, res[404]);
+      throw HttpError(404);
     }
 
     res.json(contact);
@@ -26,12 +26,12 @@ export const deleteContact = async (req, res, next) => {
     const { id } = req.params;
     const removedContact = await contactsModel.findByIdAndDelete(id);
     if (removedContact === null) {
-      next(HttpError(404, res[404]));
+      next(HttpError(404));
     }
 
     res.status(200).json({ message: "Contact deleted" });
   } catch {
-    next(HttpError(404, res[404]));
+    next(HttpError(404));
   }
 };
 
@@ -54,7 +54,7 @@ export const updateContact = async (req, res, next) => {
       { new: true }
     );
     if (updatedContacts === null) {
-      throw HttpError(404, res[404]);
+      throw HttpError(404);
     }
     res.json(updatedContacts);
   } catch (error) {
@@ -71,7 +71,7 @@ export const updateStatusContact = async (req, res, next) => {
       { new: true }
     );
     if (updatedContacts === null) {
-      throw HttpError(404, res[404]);
+      throw HttpError(404);
     }
     res.json(updatedContacts);
   } catch (error) {
