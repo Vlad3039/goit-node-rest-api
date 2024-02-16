@@ -1,13 +1,15 @@
-const ctrlWrapper = (ctrl) => {
-  const fn = async (req, res, next) => {
-    try {
-      await ctrl(req, res, next);
-    } catch (error) {
-      next(error);
+import HttpError from "./HttpError.js";
+
+const validateBody = (schema) => {
+  const func = (req, _, next) => {
+    const { error } = schema.validate(req.body);
+    if (error) {
+      next(HttpError(400, error.message));
     }
+    next();
   };
 
-  return fn;
+  return func;
 };
 
-export default ctrlWrapper;
+export default validateBody;
