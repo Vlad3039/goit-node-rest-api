@@ -27,6 +27,14 @@ const userShema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      dafault: null,
+    },
   },
   { versionKey: false, timestamps: true }
 );
@@ -46,6 +54,13 @@ export const userJoiSchema = Joi.object({
       "any.only": "Subscription must be one of {#valids}",
       "string.base": "field subscription must be a string",
     }),
+});
+
+export const verufyEmailJoiSchema = Joi.object({
+  email: Joi.string().required().messages({
+    "any.required": "missing required email field",
+    "string.base": "field email must be a string",
+  }),
 });
 
 export const UsersModel = mongoose.model("User", userShema);

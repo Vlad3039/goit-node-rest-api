@@ -27,6 +27,9 @@ export const authenticate = async (req, res, next) => {
       if (user.token !== token) {
         next(HttpError(401, "Not authorized"));
       }
+      if (user.verify === false) {
+        next(HttpError(404));
+      }
 
       req.user = {
         id: decode.id,
